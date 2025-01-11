@@ -1,0 +1,11 @@
+yugioh-card-game/
+├── client/                 # Frontend React application
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── services/
+├── server/                 # Backend Node.js application
+│   ├── models/
+│   ├── routes/
+│   └── controllers/
+└── shared/                 # Shared types and constants 

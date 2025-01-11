@@ -1,0 +1,29 @@
+.phase-indicator {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 1rem;
+}
+
+.phase {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.phase.active {
+  background-color: rgba(76, 175, 80, 0.5);
+}
+
+.phase.next {
+  background-color: rgba(255, 152, 0, 0.5);
+}
+
+.phase.available {
+  cursor: pointer;
+  background-color: rgba(255, 152, 0, 0.3);
+}
+
+.phase.available:hover {
+  background-color: rgba(255, 152, 0, 0.5);
+} 

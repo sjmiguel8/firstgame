@@ -1,0 +1,61 @@
+.ai-game-setup {
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: #1a1a1a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.difficulty-selection {
+  background-color: #2a2a2a;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.difficulty-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.difficulty-btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #333;
+  color: white;
+}
+
+.difficulty-btn.active {
+  background-color: #4CAF50;
+  transform: scale(1.05);
+}
+
+.difficulty-description {
+  margin: 1rem 0 2rem;
+  color: #ccc;
+  font-style: italic;
+}
+
+.start-game-btn {
+  padding: 1rem 3rem;
+  background-color: #ffd700;
+  color: black;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.start-game-btn:hover {
+  transform: translateY(-2px);
+} 

@@ -1,0 +1,63 @@
+.preview-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-style: italic;
+}
+
+.preview-image {
+  width: 100%;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.preview-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.preview-details {
+  padding: 10px;
+}
+
+.preview-name {
+  font-size: 1.2em;
+  margin: 0 0 10px 0;
+  color: #ffd700;
+}
+
+.preview-stats {
+  background: #333;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.label {
+  color: #999;
+}
+
+.value {
+  color: #fff;
+}
+
+.preview-type {
+  color: #999;
+  margin-bottom: 10px;
+}
+
+.preview-description {
+  font-size: 0.9em;
+  line-height: 1.4;
+  color: #ccc;
+} 

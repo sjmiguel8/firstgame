@@ -1,0 +1,316 @@
+:root {
+  --primary-bg: #1E1E2E;
+  --secondary-bg: #302D41;
+  --accent-1: #89DCEB;
+  --accent-2: #F5C2E7;
+  --accent-3: #ABE9B3;
+  --text-primary: #D9E0EE;
+  --text-secondary: #988BA2;
+  --monster-zone: rgba(245, 194, 231, 0.1);
+  --spell-zone: rgba(137, 220, 235, 0.1);
+  --card-hover: rgba(171, 233, 179, 0.2);
+}
+
+.play-ai {
+  min-height: 100vh;
+  background-color: var(--primary-bg);
+  color: var(--text-primary);
+  padding: 20px;
+}
+
+.game-board {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 40px);
+  gap: 20px;
+}
+
+.opponent-area,
+.player-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.center-area {
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.field {
+  background-color: var(--secondary-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+}
+
+.monster-zones,
+.spell-trap-zones {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+.card-zone {
+  aspect-ratio: 2/3;
+  background-color: var(--bg-surface);
+  border: 2px dashed var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.monster-zone {
+  background-color: var(--monster-zone);
+  border-color: var(--accent-2);
+}
+
+.spell-trap-zone {
+  background-color: var(--spell-zone);
+  border-color: var(--accent-1);
+}
+
+.opponent .field {
+  flex-direction: column-reverse;
+}
+
+.card-zone.selected {
+  border-color: #4CAF50;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.hand {
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+  min-height: 200px;
+  margin-top: auto;
+}
+
+.card {
+  width: 120px;
+  height: 174px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  position: relative;
+  margin: 0 -10px;
+}
+
+.card:hover {
+  transform: translateY(-20px) scale(1.05);
+}
+
+.card.selected {
+  transform: translateY(-30px) scale(1.1);
+  box-shadow: 0 0 20px var(--accent-3);
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+}
+
+.error {
+  color: #ff4444;
+  text-align: center;
+  padding: 20px;
+}
+
+.game-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.draw-button,
+.end-turn-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.draw-button {
+  background-color: var(--accent-3);
+  color: var(--primary-bg);
+}
+
+.draw-button:hover {
+  background-color: #45a049;
+}
+
+.end-turn-button {
+  background-color: var(--accent-2);
+  color: var(--primary-bg);
+}
+
+.end-turn-button:hover {
+  background-color: #d32f2f;
+}
+
+.life-points {
+  background-color: var(--secondary-bg);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 1.2em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.life-points.opponent {
+  color: var(--accent-2);
+}
+
+.life-points.player {
+  color: var(--accent-3);
+}
+
+.center-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+}
+
+/* Disable buttons when not player's turn */
+.draw-button:disabled,
+.end-turn-button:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+/* Position options for monster cards */
+.position-options {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  background: var(--bg-overlay);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+
+.position-button {
+  background-color: var(--accent-blue);
+  color: var(--bg-base);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.position-button:hover {
+  background-color: var(--accent-pink);
+  transform: scale(1.05);
+}
+
+.card-zone.playable {
+  border: 2px solid var(--accent-green);
+  background-color: rgba(171, 233, 179, 0.2);
+  animation: pulse 1.5s infinite;
+  cursor: pointer;
+}
+
+.card-zone.playable::after {
+  content: '!';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--accent-green);
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.card-zone:not(.playable) {
+  cursor: default;
+}
+
+/* Make it clear when we're waiting for zone selection */
+.awaiting-zone-select .card-zone.playable::after {
+  content: '!';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #4CAF50;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+@keyframes pulse {
+  0% { border-color: rgba(171, 233, 179, 0.4); }
+  50% { border-color: rgba(171, 233, 179, 1); }
+  100% { border-color: rgba(171, 233, 179, 0.4); }
+}
+
+.card-image.rotated {
+  transform: rotate(90deg);
+}
+
+.monster-zone .card-image,
+.spell-trap-zone .card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s;
+}
+
+.card-zone.monster-zone {
+  background-color: rgba(255, 0, 0, 0.05);
+  border: 2px dashed rgba(255, 0, 0, 0.2);
+}
+
+.card-zone.spell-trap-zone {
+  background-color: rgba(0, 255, 0, 0.05);
+  border: 2px dashed rgba(0, 255, 0, 0.2);
+}
+
+.phase-button {
+  background-color: var(--accent-1);
+  color: var(--primary-bg);
+}
+
+.phase-button:hover {
+  background-color: #1976D2;
+}
+
+.phase-button:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.game-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.awaiting-zone-select .card-zone {
+  pointer-events: auto;
+} 

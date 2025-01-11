@@ -1,0 +1,80 @@
+.card-activation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.activation-modal {
+  background-color: #2a2a2a;
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 300px;
+}
+
+.position-buttons {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.position-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #444;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.position-button:hover {
+  background-color: #555;
+}
+
+.targets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.target-card {
+  padding: 10px;
+  background-color: #444;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.target-card:hover {
+  background-color: #555;
+}
+
+.activate-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.cancel-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  margin-top: 10px;
+  cursor: pointer;
+} 

@@ -1,0 +1,73 @@
+.game-board {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #1a1a1a;
+  color: white;
+}
+
+.opponent-field,
+.player-field {
+  height: 40vh;
+  padding: 20px;
+  border: 1px solid #333;
+}
+
+.center-field {
+  height: 20vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.monster-zone,
+.spell-trap-zone {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+.card {
+  width: 120px;
+  height: 180px;
+  border: 2px solid #666;
+  border-radius: 8px;
+  padding: 8px;
+  background-color: #2a2a2a;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card.selected {
+  border-color: #ffd700;
+  box-shadow: 0 0 10px #ffd700;
+}
+
+.card.face-down {
+  background-image: url('/card-back.png');
+  background-size: cover;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.card-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.player-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+} 

@@ -1,0 +1,19 @@
+.hand {
+  position: relative;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 20px;
+}
+
+.hand-card-wrapper {
+  position: absolute;
+  transform-origin: bottom center;
+  transition: transform 0.3s ease;
+}
+
+.hand-card-wrapper:hover {
+  transform: translateY(-30px) !important;
+  z-index: 100 !important;
+} 

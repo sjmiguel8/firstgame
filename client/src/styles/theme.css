@@ -1,0 +1,64 @@
+:root {
+  /* Catppuccin Mocha Theme */
+  --bg-base: #1E1E2E;
+  --bg-surface: #302D41;
+  --bg-overlay: #45475A;
+  --text-primary: #D9E0EE;
+  --text-secondary: #988BA2;
+  --accent-blue: #89DCEB;
+  --accent-pink: #F5C2E7;
+  --accent-green: #ABE9B3;
+  --accent-yellow: #FAE3B0;
+  --accent-red: #F28FAD;
+  --accent-purple: #DDB6F2;
+  
+  /* Component-specific colors */
+  --monster-zone: rgba(245, 194, 231, 0.1);
+  --spell-zone: rgba(137, 220, 235, 0.1);
+  --card-hover: rgba(171, 233, 179, 0.2);
+  --button-hover: rgba(221, 182, 242, 0.2);
+  --error: var(--accent-red);
+  --success: var(--accent-green);
+}
+
+/* Global styles */
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+}
+
+button {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-purple);
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background-color: var(--button-hover);
+  transform: translateY(-1px);
+}
+
+input, select, textarea {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-purple);
+  border-radius: 4px;
+  padding: 8px;
+}
+
+/* Navigation styles */
+nav {
+  background-color: var(--bg-surface);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Card styles */
+.card {
+  background-color: var(--bg-surface);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+} 
