@@ -13,9 +13,9 @@ export function SocketProvider({ children }) {
   useEffect(() => {
     console.log('Initializing socket connection');
     const newSocket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000', {
-      transports: ['websocket'],
-      reconnection: true,
-      reconnectionAttempts: 5
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
     });
 
     newSocket.on('connect', () => {

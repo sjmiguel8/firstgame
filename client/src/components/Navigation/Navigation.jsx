@@ -38,6 +38,9 @@ const Navigation = () => {
           </>
         )}
       </div>
+      <Link to="/rules-upload" className="nav-link">
+        Upload Rules
+      </Link>
     </nav>
   );
 };

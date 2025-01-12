@@ -12,7 +12,9 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || "http://localhost:3000",
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true,
+    transports: ['websocket', 'polling']
   }
 });
 
@@ -33,10 +35,7 @@ app.get('/health', (req, res) => {
 
 // Connect to MongoDB
 console.log('Attempting MongoDB connection...');
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log('Connected to MongoDB Atlas'))
 .catch(err => {
   console.error('MongoDB connection error:', err);
@@ -54,16 +53,13 @@ const gameService = new GameService();
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  socket.on('start_ai_game', ({ deck }) => {
+  socket.on('startGame', async (data) => {
     try {
-      console.log('Received deck data:', deck);
-      const gameState = gameService.initializeGame(socket.id, deck);
-      console.log('Game state created:', gameState);
-      socket.emit('game_state', gameState);
-      console.log('Starting AI game for player:', socket.id);
+      const gameState = gameService.initializeGame(socket.id, data.deck);
+      socket.emit('gameStarted', { game: gameState });
     } catch (error) {
       console.error('Error starting game:', error);
-      socket.emit('game_error', { message: 'Failed to start game' });
+      socket.emit('error', { message: 'Failed to start game' });
     }
   });
 
@@ -131,6 +127,11 @@ io.on('connection', (socket) => {
     console.log('User disconnected:', socket.id);
     gameService.cleanupGame(socket.id);
   });
+});
+
+// Add error handling for socket connections
+io.on('connect_error', (error) => {
+  console.error('Socket connection error:', error);
 });
 
 const PORT = process.env.PORT || 5000;

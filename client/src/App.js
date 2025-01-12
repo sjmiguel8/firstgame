@@ -12,6 +12,7 @@ import PlayAI from './components/PlayAI/PlayAI';
 import Profile from './components/Profile/Profile';
 import Home from './components/Home/Home';
 import ErrorBoundary from './components/ErrorBoundary';
+import RuleUploader from './components/RuleUploader/RuleUploader';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
               <Route path="/deck-builder" element={<PrivateRoute><DeckBuilder /></PrivateRoute>} />
               <Route path="/game-mode" element={<PrivateRoute><GameMode /></PrivateRoute>} />
               <Route path="/play-ai" element={<PrivateRoute><PlayAI /></PrivateRoute>} />
+              <Route path="/rules-upload" element={<PrivateRoute><RuleUploader /></PrivateRoute>} />
             </Routes>
           </SocketProvider>
         </AuthProvider>
