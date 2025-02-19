@@ -14,8 +14,11 @@ const PhaseIndicator = ({ currentPhase = 'DRAW', isPlayerTurn }) => {
           {phase}
         </div>
       ))}
+      <div className="turn-indicator">
+        {isPlayerTurn ? "Your Turn" : "Opponent's Turn"}
+      </div>
     </div>
   );
 };
 
-export default PhaseIndicator; 
+export default PhaseIndicator;

@@ -16,16 +16,42 @@ const PlayAI = () => {
   const [showPositionDialog, setShowPositionDialog] = useState(false);
   const [awaitingZoneSelect, setAwaitingZoneSelect] = useState(false);
   const [selectedAttacker, setSelectedAttacker] = useState(null);
-  const [selectedTarget, setSelectedTarget] = useState(null);
   const [currentPhase, setCurrentPhase] = useState('DRAW_PHASE');
+  const [hasDrawnCard, setHasDrawnCard] = useState(false);
+  const [playerId, setPlayerId] = useState(null);
 
   // Phase progression
   const phases = ['DRAW_PHASE', 'STANDBY_PHASE', 'MAIN_PHASE_1', 'BATTLE_PHASE', 'MAIN_PHASE_2', 'END_PHASE'];
 
+  // Initialize game when socket connects or reconnects
+  const initializeGame = useCallback(() => {
+    if (!socket) return;
+
+    const currentDeck = JSON.parse(localStorage.getItem('currentDeck'));
+    if (!currentDeck) {
+      console.error('No deck found');
+      navigate('/deck-builder');
+      return;
+    }
+
+    console.log('Starting game with deck:', currentDeck);
+    socket.emit('startGame', { deck: currentDeck });
+  }, [socket, navigate]);
+
   useEffect(() => {
     if (!socket) return;
 
+    // Set player ID when socket is available
+    setPlayerId(socket.id);
+
     console.log('Setting up game event listeners');
+
+    // Listen for reconnection
+    socket.on('connect', () => {
+      console.log('Socket reconnected, reinitializing game');
+      setPlayerId(socket.id);
+      initializeGame();
+    });
 
     // Listen for game start
     socket.on('gameStarted', ({ game }) => {
@@ -38,6 +64,11 @@ const PlayAI = () => {
     socket.on('game_state', (updatedState) => {
       console.log('Game state updated:', updatedState);
       setGameState(updatedState);
+      
+      // Reset draw flag when turn changes
+      if (updatedState.turn !== gameState?.turn) {
+        setHasDrawnCard(false);
+      }
     });
 
     // Listen for errors
@@ -46,87 +77,54 @@ const PlayAI = () => {
       alert(error.message);
     });
 
-    // Start the game when component mounts
-    const activeDeck = JSON.parse(localStorage.getItem('activeDeck'));
-    if (activeDeck) {
-      console.log('Starting game with deck:', activeDeck);
-      socket.emit('startGame', { deck: activeDeck });
-    } else {
-      console.error('No active deck found');
-      navigate('/deck-builder');
-    }
+    // Initialize game on mount
+    initializeGame();
 
     return () => {
+      socket.off('connect');
       socket.off('gameStarted');
       socket.off('game_state');
       socket.off('game_error');
     };
-  }, [socket, navigate]);
+  }, [socket, initializeGame, gameState?.turn]);
 
-  const renderField = (playerId) => {
-    if (!gameState || !gameState.players[playerId]) return null;
-    
-    const player = gameState.players[playerId];
-    console.log('Rendering field for player:', playerId, player);
-
-    return (
-      <div className="field">
-        <div className="monster-zones">
-          {player.field.map((slot, index) => (
-            <div key={`monster-${index}`} className="card-zone monster-zone">
-              {slot && (
-                <img 
-                  src={slot.card.image || cardBack} 
-                  alt={slot.card.name} 
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="spell-trap-zones">
-          {player.spellTrapZone.map((slot, index) => (
-            <div key={`spell-${index}`} className="card-zone spell-trap-zone">
-              {slot && (
-                <img 
-                  src={slot.card.image || cardBack} 
-                  alt={slot.card.name} 
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const handleCardSelect = (card) => {
-    console.log('Card selected:', card);
-    setSelectedCard(card);
-    
-    if (card.type === 'Monster') {
-      // Show position options for monsters
-      setShowPositionDialog(true);
-    } else {
-      // Spells/Traps can only be set face-down or activated face-up
-      setShowPositionDialog(true);
+  // Handle automatic draw in draw phase
+  useEffect(() => {
+    if (gameState && 
+        playerId && 
+        gameState.turn === playerId && 
+        currentPhase === 'DRAW_PHASE' && 
+        !hasDrawnCard &&
+        socket) {
+      socket.emit('draw_card');
+      setHasDrawnCard(true);
     }
-  };
+  }, [gameState, currentPhase, playerId, hasDrawnCard, socket]);
 
-  const handlePositionSelect = (position) => {
-    setSelectedPosition(position);
-    setShowPositionDialog(false);
-    // Now show available zones
-    setAwaitingZoneSelect(true);
-  };
+  const handleZoneClick = (index, zoneType) => {
+    if (!awaitingZoneSelect || !selectedCard || !playerId || !socket) return;
 
-  const handleZoneSelect = (zoneIndex, zoneType) => {
-    if (!selectedCard || !selectedPosition) return;
+    // Check if card type matches zone type
+    if ((selectedCard.type === 'Monster' && zoneType !== 'monster') ||
+        ((selectedCard.type === 'Spell' || selectedCard.type === 'Trap') && zoneType !== 'spellTrap')) {
+      alert('Invalid zone for this card type!');
+      return;
+    }
+
+    // Check if zone is empty
+    if (!gameState?.players[playerId]?.field) return;
+    const playerField = gameState.players[playerId].field;
+    const zone = zoneType === 'monster' ? playerField.monsters[index] : playerField.spellsTraps[index];
+    if (zone) {
+      alert('This zone is already occupied!');
+      return;
+    }
 
     socket.emit('play_card', {
       cardId: selectedCard.id,
       position: selectedPosition,
-      zone: zoneIndex,
-      zoneType: zoneType // 'monster' or 'spellTrap'
+      zone: index,
+      zoneType: zoneType
     });
 
     // Reset selection states
@@ -135,10 +133,27 @@ const PlayAI = () => {
     setAwaitingZoneSelect(false);
   };
 
+  const handleCardSelect = (card) => {
+    if (currentPhase !== 'MAIN_PHASE_1' && currentPhase !== 'MAIN_PHASE_2') {
+      alert('You can only play cards during Main Phase 1 or 2!');
+      return;
+    }
+
+    console.log('Card selected:', card);
+    setSelectedCard(card);
+    setShowPositionDialog(true);
+  };
+
+  const handlePositionSelect = (position) => {
+    setSelectedPosition(position);
+    setShowPositionDialog(false);
+    setAwaitingZoneSelect(true);
+  };
+
   const renderHand = () => {
-    if (!gameState || !gameState.players[socket.id]) return null;
+    if (!gameState || !playerId || !gameState.players[playerId]) return null;
     
-    const player = gameState.players[socket.id];
+    const player = gameState.players[playerId];
     
     return (
       <div className="hand">
@@ -151,6 +166,51 @@ const PlayAI = () => {
             <img src={card.image || cardBack} alt={card.name} />
           </div>
         ))}
+      </div>
+    );
+  };
+
+  const renderField = (playerId) => {
+    if (!gameState || !gameState.players[playerId]) return null;
+    
+    const player = gameState.players[playerId];
+    console.log('Rendering field for player:', playerId, player);
+
+    return (
+      <div className="field">
+        <div className="monster-zones">
+          {player.field.monsters.map((slot, index) => (
+            <div 
+              key={`monster-${index}`} 
+              className={`card-zone monster-zone ${isValidMonsterZone(index) ? 'playable' : ''}`}
+              onClick={() => handleZoneClick(index, 'monster')}
+            >
+              {slot && (
+                <img 
+                  src={slot.isFaceDown ? cardBack : (slot.card.image || cardBack)}
+                  alt={slot.isFaceDown ? 'Face-down card' : slot.card.name}
+                  className={slot.position === 'defense' ? 'rotated' : ''}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="spell-trap-zones">
+          {player.field.spellsTraps.map((slot, index) => (
+            <div 
+              key={`spell-${index}`} 
+              className={`card-zone spell-trap-zone ${isValidSpellTrapZone(index) ? 'playable' : ''}`}
+              onClick={() => handleZoneClick(index, 'spellTrap')}
+            >
+              {slot && (
+                <img 
+                  src={slot.isFaceDown ? cardBack : (slot.card.image || cardBack)}
+                  alt={slot.isFaceDown ? 'Face-down card' : slot.card.name}
+                />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -187,33 +247,67 @@ const PlayAI = () => {
     );
   };
 
-  const handleEndTurn = () => {
-    socket.emit('end_turn');
+  const handlePhaseChange = (newPhase) => {
+    if (!socket) return;
+    socket.emit('change_phase', { phase: newPhase });
+    setCurrentPhase(newPhase);
   };
 
-  const handlePhaseChange = (newPhase) => {
-    socket.emit('change_phase', { phase: newPhase });
+  const isValidMonsterZone = (index) => {
+    if (!gameState || !selectedCard || !awaitingZoneSelect || !playerId) return false;
+    
+    // Check if it's the right phase
+    if (currentPhase !== 'MAIN_PHASE_1' && currentPhase !== 'MAIN_PHASE_2') return false;
+    
+    const playerField = gameState.players[playerId]?.field;
+    if (!playerField) return false;
+    
+    // Check if zone is empty
+    if (playerField.monsters[index]) return false;
+    
+    // Check if card type matches zone type
+    if (selectedCard.type === 'Monster') {
+      return true;
+    }
+    
+    return false;
+  };
+
+  const isValidSpellTrapZone = (index) => {
+    if (!gameState || !selectedCard || !awaitingZoneSelect || !playerId) return false;
+    
+    // Check if it's the right phase
+    if (currentPhase !== 'MAIN_PHASE_1' && currentPhase !== 'MAIN_PHASE_2') return false;
+    
+    const playerField = gameState.players[playerId]?.field;
+    if (!playerField) return false;
+    
+    // Check if zone is empty
+    if (playerField.spellsTraps[index]) return false;
+    
+    // Check if card type matches zone type
+    if (selectedCard.type === 'Spell' || selectedCard.type === 'Trap') {
+      return true;
+    }
+    
+    return false;
   };
 
   const handleAttackDeclaration = (attackingMonster, targetMonster) => {
+    if (!socket) return;
     socket.emit('declare_attack', {
       attackerId: attackingMonster.id,
-      targetId: targetMonster ? targetMonster.id : null // null means direct attack
+      targetId: targetMonster ? targetMonster.id : null
     });
   };
 
   const isValidPhaseTransition = (currentPhase, newPhase) => {
-    const phaseOrder = [
-      'DRAW_PHASE',
-      'STANDBY_PHASE',
-      'MAIN_PHASE_1',
-      'BATTLE_PHASE',
-      'MAIN_PHASE_2',
-      'END_PHASE'
-    ];
+    if (!gameState || !playerId) return false;
+    
+    const phaseOrder = phases;
     
     // Can't change phases if it's not your turn
-    if (gameState && gameState.turn !== socket.id) {
+    if (gameState.turn !== playerId) {
       return false;
     }
 
@@ -221,8 +315,13 @@ const PlayAI = () => {
     const currentIndex = phaseOrder.indexOf(currentPhase);
     const newIndex = phaseOrder.indexOf(newPhase);
 
-    // Phase must exist and be the next one in sequence
+    // Phase must exist
     if (currentIndex === -1 || newIndex === -1) {
+      return false;
+    }
+
+    // Must draw in draw phase before proceeding
+    if (currentPhase === 'DRAW_PHASE' && !hasDrawnCard) {
       return false;
     }
 
@@ -237,7 +336,7 @@ const PlayAI = () => {
 
   // Add phase controls
   const renderPhaseControls = () => {
-    if (!gameState || gameState.turn !== socket.id) return null;
+    if (!gameState || !playerId || gameState.turn !== playerId) return null;
 
     return (
       <div className="phase-controls">
@@ -257,7 +356,7 @@ const PlayAI = () => {
 
   // Add battle controls
   const renderBattleControls = () => {
-    if (!gameState || gameState.currentPhase !== 'BATTLE_PHASE') return null;
+    if (!gameState || currentPhase !== 'BATTLE_PHASE') return null;
 
     return (
       <div className="battle-controls">
@@ -275,48 +374,9 @@ const PlayAI = () => {
     );
   };
 
-  // Update monster zone rendering to include attack selection
-  const renderMonsterZone = (slot, index, isPlayer) => {
-    if (!slot) return (
-      <div 
-        key={`monster-${index}`} 
-        className={`card-zone monster-zone ${isValidMonsterZone(index) ? 'playable' : ''}`}
-        onClick={() => handleMonsterZoneClick(index)}
-      />
-    );
-
-    return (
-      <div 
-        key={`monster-${index}`} 
-        className={`card-zone monster-zone ${slot.canAttack ? 'can-attack' : ''} ${selectedAttacker?.id === slot.card.id ? 'selected' : ''}`}
-        onClick={() => handleMonsterClick(slot, index, isPlayer)}
-      >
-        <img 
-          src={slot.isFaceDown ? cardBack : (slot.card.image || cardBack)} 
-          alt={slot.isFaceDown ? 'Face-down card' : slot.card.name}
-          className={slot.position === 'defense' ? 'rotated' : ''}
-        />
-        {slot.card.attack && !slot.isFaceDown && (
-          <div className="card-stats">
-            <span className="atk">ATK: {slot.card.attack}</span>
-            <span className="def">DEF: {slot.card.defense}</span>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const handleMonsterClick = (slot, index, isPlayer) => {
-    if (gameState.currentPhase === 'BATTLE_PHASE' && isPlayer && slot.canAttack) {
-      setSelectedAttacker(slot);
-    } else if (gameState.currentPhase === 'BATTLE_PHASE' && !isPlayer && selectedAttacker) {
-      handleAttackDeclaration(selectedAttacker, slot);
-    }
-  };
-
   // Add game info display
   const renderGameInfo = () => {
-    if (!gameState) return null;
+    if (!gameState || !playerId) return null;
 
     return (
       <div className="game-info">
@@ -325,11 +385,14 @@ const PlayAI = () => {
           <span className="deck-count">Deck: {gameState.players.ai.deck.length}</span>
         </div>
         <div className="phase-indicator">
-          {currentPhase.replace('_', ' ')}
+          <PhaseIndicator 
+            currentPhase={currentPhase} 
+            isPlayerTurn={gameState.turn === playerId}
+          />
         </div>
         <div className="player-info player">
-          <span className="life-points">LP: {gameState.players[socket.id].lifePoints}</span>
-          <span className="deck-count">Deck: {gameState.players[socket.id].deck.length}</span>
+          <span className="life-points">LP: {gameState.players[playerId].lifePoints}</span>
+          <span className="deck-count">Deck: {gameState.players[playerId].deck.length}</span>
         </div>
       </div>
     );
@@ -357,7 +420,7 @@ const PlayAI = () => {
         </div>
 
         <div className="player-area">
-          {renderField(socket.id)}
+          {renderField(playerId)}
           {renderHand()}
         </div>
       </div>
@@ -366,4 +429,4 @@ const PlayAI = () => {
   );
 };
 
-export default PlayAI; 
+export default PlayAI;
