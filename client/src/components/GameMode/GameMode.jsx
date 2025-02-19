@@ -1,34 +1,62 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './GameMode.css';
 
 const GameMode = () => {
   const navigate = useNavigate();
+  const [showDeckSelection, setShowDeckSelection] = useState(false);
+  const [savedDecks, setSavedDecks] = useState([]);
+
+  useEffect(() => {
+    const loadedDecks = JSON.parse(localStorage.getItem('savedDecks') || '[]');
+    setSavedDecks(loadedDecks);
+  }, []);
 
   const handleGameModeSelect = (mode) => {
     if (mode === 'ai') {
-      const activeDeckString = localStorage.getItem('activeDeck');
-      if (!activeDeckString) {
-        alert('Please build and select a deck first!');
+      if (savedDecks.length === 0) {
+        alert('Please build a deck first!');
         navigate('/deck-builder');
         return;
       }
-
-      try {
-        const activeDeck = JSON.parse(activeDeckString);
-        if (!activeDeck || !activeDeck.cards) {
-          alert('Invalid deck format. Please rebuild your deck.');
-          navigate('/deck-builder');
-          return;
-        }
-        navigate('/play-ai');
-      } catch (error) {
-        console.error('Error parsing deck:', error);
-        alert('Error loading deck. Please rebuild your deck.');
-        navigate('/deck-builder');
-      }
+      setShowDeckSelection(true);
     }
   };
+
+  const handleDeckSelect = (selectedDeck) => {
+    try {
+      localStorage.setItem('currentDeck', JSON.stringify(selectedDeck.cards));
+      navigate('/play-ai');
+    } catch (error) {
+      console.error('Error setting deck:', error);
+      alert('Error loading deck. Please try again.');
+    }
+  };
+
+  if (showDeckSelection) {
+    return (
+      <div className="game-mode">
+        <h1>Select Your Deck</h1>
+        <div className="deck-selection">
+          {savedDecks.map(deck => (
+            <button
+              key={deck.id}
+              className="deck-button"
+              onClick={() => handleDeckSelect(deck)}
+            >
+              {deck.name} ({deck.cards.length} cards)
+            </button>
+          ))}
+        </div>
+        <button
+          className="back-button"
+          onClick={() => setShowDeckSelection(false)}
+        >
+          Back
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="game-mode">
@@ -52,4 +80,4 @@ const GameMode = () => {
   );
 };
 
-export default GameMode; 
+export default GameMode;
