@@ -25,7 +25,7 @@ const GameMode = () => {
 
   const handleDeckSelect = (selectedDeck) => {
     try {
-      localStorage.setItem('currentDeck', JSON.stringify(selectedDeck.cards));
+      localStorage.setItem('activeDeck', JSON.stringify(selectedDeck));
       navigate('/play-ai');
     } catch (error) {
       console.error('Error setting deck:', error);
